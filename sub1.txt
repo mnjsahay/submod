@@ -1,5 +1,5 @@
-first change by conflict file in submodule
-updating independelty by try branch and this has to be final
+first change by master file in submodule
+updating by master in this second line would cause conflict
 updating again
 updating again2
 updatin 3
