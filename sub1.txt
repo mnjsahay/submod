@@ -1,4 +1,4 @@
 first change by master file in submodule
 updating by master in this second line would cause conflict
 updating again
-updating again2
+updating again2 by b1
