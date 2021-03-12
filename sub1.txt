@@ -4,3 +4,4 @@ updating again by master to pick for b1
 updating again2 by b1
 this line needs to be pick by b1 one last time
 update for rebase finally by b1
+new
