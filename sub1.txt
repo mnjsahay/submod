@@ -1,4 +1,4 @@
-first change by master file in submodule
+first change by master file in submodule at gui
 updating by master in this second line would cause conflict
 updating again by master to pick for b1
 updating again2 by b1
