@@ -1,0 +1,59 @@
+Demo steps
+
+
+probes(mac/katacoda)
+
+kubectl apply -f https://raw.githubusercontent.com/mnjsahay/submod/master/liveness.yaml
+
+pod to pod communication(mzone)
+——————————————-
+
+kubectl run --rm --generator=run-pod/v1 -i -t --image=192.168.219.17/busybox:1.28.0-glibc --overrides='{"spec": { "nodeSelector": {"kubernetes.io/hostname": "dal2-qz2-sr2-rk116-s22"}}}' test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+tcpdump -i any | grep 11.29.21.36
+
+service communication (katacoda)
+—————————————
+kubectl apply -f service_deployment.yaml
+kubectl expose deployment/my-nginx
+iptables -t nat -L | grep -i nginx
+iptables -t nat -L KUBE-SVC-BEPXDJBUHFCSYIC3
+
+watch -n 0.2 "iptables -t nat -L KUBE-SVC-BEPXDJBUHFCSYIC3 -v"
+kubectl run --rm --generator=run-pod/v1 -i -t --image=busybox  test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+wget -qO- my-nginx
+
+RBAC(mac/katacoda)
+——————
+
+kubectl create ns mynamespace
+kubectl apply -f role.yaml
+kubectl create serviceaccount example-sa --namespace mynamespace
+kubectl apply -f role-binding.yaml
+token=$(kubectl get serviceaccount -n mynamespace example-sa -o json | jq -Mr '.secrets[].name')
+TOKEN=$(kubectl get secrets -n mynamespace $token -o json | jq -Mr '.data.token' | base64 --decode)
+curl -X GET https://kubernetes.docker.internal:6443/api/v1/namespaces/mynamespace/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
+curl -X GET https://kubernetes.docker.internal:6443/api/v1/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
+kubectl get pod -n mynamespace --v=8
+curl -X GET https://kubernetes.docker.internal:6443/api/v1/namespaces/mynamespace/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
+curl -X GET https://kubernetes.docker.internal:6443/api/v1/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
+kubectl apply -f cluster-role.yaml 
+kubectl apply -f cluster-role-binding.yaml
+kubectl delete -f cluster-role.yaml 
+kubectl delete -f cluster-role-binding.yaml
+
+
+PSP(mzone)
+
+kubectl get psp restricted -o yaml
+kubectl run --rm --generator=run-pod/v1 -i -t --image=192.168.219.17/busybox:1.28.0-glibc  test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+
+networkpolicy(katacoda/mzone)
+
+kubectl run --generator=run-pod/v1 web --image=nginx --labels app=web --expose --port 80 
+kubectl apply -f https://raw.githubusercontent.com/mnjsahay/submod/master/kube-router.yaml
+kubectl apply -f https://raw.githubusercontent.com/mnjsahay/submod/master/web-deny-all.yaml
+kubectl run  --generator=run-pod/v1 -i -t --image=busybox  test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+wget -qO- --timeout=2 http://web 
+
+
+
