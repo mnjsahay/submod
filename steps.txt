@@ -29,17 +29,31 @@ kubectl create ns mynamespace
 kubectl apply -f role.yaml
 kubectl create serviceaccount example-sa --namespace mynamespace
 kubectl apply -f role-binding.yaml
-token=$(kubectl get serviceaccount -n mynamespace example-sa -o json | jq -Mr '.secrets[].name')
-TOKEN=$(kubectl get secrets -n mynamespace $token -o json | jq -Mr '.data.token' | base64 --decode)
+
+outside->>>>
+secret=$(kubectl get serviceaccount -n mynamespace example-sa -o json | jq -Mr '.secrets[].name')
+TOKEN=$(kubectl get secrets -n mynamespace $secret -o json | jq -Mr '.data.token' | base64 --decode)
 curl -X GET https://kubernetes.docker.internal:6443/api/v1/namespaces/mynamespace/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
 curl -X GET https://kubernetes.docker.internal:6443/api/v1/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
 kubectl get pod -n mynamespace --v=8
 curl -X GET https://kubernetes.docker.internal:6443/api/v1/namespaces/mynamespace/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
 curl -X GET https://kubernetes.docker.internal:6443/api/v1/pods?limit=500 --header "Authorizaton: Bearer $TOKEN" --insecure
+ kubectl edit clusterrole example-role
+
+inside ->>>>
+kubectl run  --generator=run-pod/v1 -i -t --namespace=mynamespace --serviceaccount=example-sa --image=alpine   test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+apk add --update curl
+TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+
+
+
 kubectl apply -f cluster-role.yaml 
 kubectl apply -f cluster-role-binding.yaml
-kubectl delete -f cluster-role.yaml 
 kubectl delete -f cluster-role-binding.yaml
+kubectl delete -f role-binding.yaml
+kubectl delete -f role.yaml 
+kubectl delete serviceaccount example-sa --namespace mynamespace
+kubectl delete -f cluster-role.yaml 
 
 
 PSP(mzone)
