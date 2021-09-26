@@ -13,7 +13,7 @@ tcpdump -i any | grep 11.29.21.36
 
 service communication (katacoda)
 —————————————
-kubectl apply -f service_deployment.yaml
+kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/mnjsahay/submod/master/service_deployment.yaml
 kubectl expose deployment/my-nginx
 iptables -t nat -L | grep -i nginx
 iptables -t nat -L KUBE-SVC-BEPXDJBUHFCSYIC3
