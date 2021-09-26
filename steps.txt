@@ -8,7 +8,15 @@ kubectl apply -f https://raw.githubusercontent.com/mnjsahay/submod/master/livene
 pod to pod communication(mzone)
 ——————————————-
 
+kubectl taint node controlplane node-role.kubernetes.io/master:NoSchedule-
+scp /etc/kubernetes/admin.conf node01:/root/
+export KUBECONFIG=/root/admin.conf   (on node1)
+kubectl run  --generator=run-pod/v1 -i -t --image=busybox  test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+kubectl run  --generator=run-pod/v1 -i -t --image=busybox  --overrides='{"spec": { "nodeSelector": {"kubernetes.io/hostname": "controlplane"}}}' test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+kubectl run  --generator=run-pod/v1 -i -t --image=busybox  --overrides='{"spec": { "nodeSelector": {"kubernetes.io/hostname": "node01"}}}' test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+
 kubectl run --rm --generator=run-pod/v1 -i -t --image=192.168.219.17/busybox:1.28.0-glibc --overrides='{"spec": { "nodeSelector": {"kubernetes.io/hostname": "dal2-qz2-sr2-rk116-s22"}}}' test-$RANDOM  --image-pull-policy='IfNotPresent' -- sh
+
 tcpdump -i any | grep 11.29.21.36
 
 service communication (katacoda)
